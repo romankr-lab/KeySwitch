@@ -1,51 +1,51 @@
-# Публікація KeySwitch на GitHub
+# Publishing KeySwitch on GitHub
 
-## Підготовка (вже зроблено)
+## Preparation (already done)
 
-- [x] `.gitignore` — ігноруються `build/`, `*.dmg`, `.DS_Store`, Xcode/SPM артефакти
-- [x] `README.md` — опис проєкту, встановлення, використання
+- [x] `.gitignore` — ignores `build/`, `*.dmg`, `.DS_Store`, Xcode/SPM artifacts
+- [x] `README.md` — project description, installation, usage
 - [x] `LICENSE` — MIT
 
-## Кроки публікації
+## Publishing steps
 
-### 1. Замінити плейсхолдер у README
+### 1. Replace placeholder in README (if needed)
 
-Відкрийте `README.md` і замініть **romankr-lab** на ваш логін GitHub у посиланнях:
+If you use a different GitHub username, update the links in `README.md`:
 
 - `https://github.com/romankr-lab/KeySwitch/releases`
 - `git clone https://github.com/romankr-lab/KeySwitch.git`
 
-### 2. Ініціалізувати Git і перший коміт
+### 2. Initialize Git and make the first commit
 
-У корені проєкту виконайте:
+In the project root:
 
 ```bash
-cd /Users/roman/Projects/KeySwitch
+cd /path/to/KeySwitch
 
-# Ініціалізація репозиторію
+# Initialize repository
 git init
 
-# Додати всі файли (згідно .gitignore)
+# Add all files (respecting .gitignore)
 git add .
-git status   # перевірити, що немає build/, *.dmg тощо
+git status   # confirm no build/, *.dmg etc.
 
-# Перший коміт
+# First commit
 git commit -m "Initial commit: KeySwitch menu bar app (clipboard + layout transform)"
 ```
 
-### 3. Створити репозиторій на GitHub
+### 3. Create the repository on GitHub
 
-1. Зайдіть на [github.com](https://github.com) і увійдіть.
-2. **New repository** (або **+** → New repository).
+1. Go to [github.com](https://github.com) and sign in.
+2. **New repository** (or **+** → New repository).
 3. **Repository name:** `KeySwitch`.
-4. Опис (опційно): *macOS menu bar app: clipboard history and keyboard layout text transformation*.
+4. Description (optional): *macOS menu bar app: clipboard history and keyboard layout text transformation*.
 5. **Public.**
-6. **Не** ставлячи галочки "Add a README" / "Add .gitignore" (вони вже в проєкті).
-7. Натисніть **Create repository**.
+6. **Do not** add a README or .gitignore (they already exist in the project).
+7. Click **Create repository**.
 
-### 4. Підключити remote і запушити
+### 4. Add remote and push
 
-На сторінці нового репозиторію GitHub скопіюйте URL (наприклад `https://github.com/romankr-lab/KeySwitch.git`) і виконайте:
+On the new repository page, copy the URL (e.g. `https://github.com/romankr-lab/KeySwitch.git`) and run:
 
 ```bash
 git remote add origin https://github.com/romankr-lab/KeySwitch.git
@@ -53,7 +53,7 @@ git branch -M main
 git push -u origin main
 ```
 
-Якщо використовуєте SSH:
+If you use SSH:
 
 ```bash
 git remote add origin git@github.com:romankr-lab/KeySwitch.git
@@ -61,23 +61,23 @@ git branch -M main
 git push -u origin main
 ```
 
-### 5. (Опційно) Перший реліз
+### 5. (Optional) First release
 
-1. Зберіть DMG: `./build_and_package.sh`
-2. На GitHub: **Releases** → **Create a new release**.
-3. **Tag:** наприклад `v1.0.0` (Create new tag).
-4. **Release title:** `v1.0.0` або `KeySwitch 1.0`.
-5. В **Description** можна вставити короткий список змін з README.
-6. Перетягніть `KeySwitch.dmg` у блок для завантажень.
+1. Build the DMG: `./build_and_package.sh`
+2. On GitHub: **Releases** → **Create a new release**.
+3. **Tag:** e.g. `v1.0.0` (create new tag).
+4. **Release title:** `v1.0.0` or `KeySwitch 1.0`.
+5. In **Description**, you can paste a short changelog or feature list from the README.
+6. Drag `KeySwitch.dmg` into the attachments area.
 7. **Publish release.**
 
-Після цього посилання на завантаження в README будуть працювати (після заміни romankr-lab).
+After that, the download link in the README will work.
 
-## Що не потрапляє в Git (завдяки .gitignore)
+## What is not committed (thanks to .gitignore)
 
-- Папка `build/`
-- Файли `KeySwitch.dmg`, `KeySwitch.zip`
+- `build/` directory
+- `KeySwitch.dmg`, `KeySwitch.zip`
 - `xcuserdata/`, `.DS_Store`
-- Залежності SPM у `build/` (Xcode підтягне їх при збірці)
+- SPM checkouts under `build/` (Xcode will fetch them on build)
 
-Готово: проєкт оформлений під повноцінний продукт і готовий до публікації на GitHub.
+Done: the project is ready to be published on GitHub.

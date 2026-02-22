@@ -1,14 +1,14 @@
 # KeySwitch
 
-A lightweight macOS menu bar app for **clipboard history** and **keyboard layout text transformation**. No Dock icon — runs from the status bar only.
+A lightweight macOS menu bar app: **clipboard history** (ready to use) and **keyboard layout text transformation** (in development). No Dock icon — runs from the status bar only.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0+-blue) ![Swift](https://img.shields.io/badge/Swift-5-orange) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
-- **Clipboard history (⌥ Option + V)** — Open a menu of recent copies; click an item to copy it to the clipboard and **paste it immediately** into the focused app (no extra ⌘V needed).
+- **Clipboard history (⌥ Option + V)** ✅ — Open a menu of recent copies; click an item to copy it to the clipboard and **paste it immediately** into the focused app (no extra ⌘V needed).
 - **Pin entries** — Star items to keep them at the top of the list.
-- **Text transformation (⌃ Control + T)** — Select text, press the hotkey; the app converts it between keyboard layouts (e.g. US ↔ Ukrainian) and switches to the next layout.
+- **Text transformation (⌃ Control + T)** 🚧 *In development* — Planned: select text, press the hotkey; the app will convert it between keyboard layouts (e.g. US ↔ Ukrainian) and switch to the next layout. Not yet reliable in all apps.
 - **Settings** — Configure history size and toggle clipboard history on or off.
 - **Accessibility check on startup** — If access is missing, a window opens with a button that takes you straight to **System Settings → Privacy & Security → Accessibility**.
 
@@ -16,7 +16,7 @@ A lightweight macOS menu bar app for **clipboard history** and **keyboard layout
 
 - macOS 14.0 or later  
 - Apple Silicon or Intel  
-- **Accessibility** permission (required for text transformation and global hotkeys)
+- **Accessibility** permission (for global hotkeys; required for future text transformation)
 
 ## Installation
 
@@ -43,10 +43,10 @@ A lightweight macOS menu bar app for **clipboard history** and **keyboard layout
 
 ## Usage
 
-| Action | Shortcut |
-|--------|----------|
-| Clipboard history menu | **⌥ Option + V** |
-| Transform selected text (layout swap) | **⌃ Control + T** |
+| Action | Shortcut | Status |
+|--------|----------|--------|
+| Clipboard history menu | **⌥ Option + V** | ✅ Works |
+| Transform selected text (layout swap) | **⌃ Control + T** | 🚧 In development |
 
 - **Status bar**: Click the KeySwitch icon to open the menu (history, settings, quit).
 - **Click to paste**: In the clipboard menu, clicking an item copies it and **pastes it automatically** into the frontmost app.
@@ -66,14 +66,10 @@ KeySwitch/
 │   └── ...
 ├── build_and_package.sh  # Build and create DMG
 ├── build_and_zip.sh      # Build and create ZIP
-├── DISTRIBUTION.md       # Install & usage (UA)
-└── BUILD_INSTRUCTIONS.md # Build details (UA)
+├── DISTRIBUTION.md       # Install & usage guide
+└── BUILD_INSTRUCTIONS.md # Build & packaging
 ```
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
-
----
-
-**Українською:** інструкції з встановлення та використання — [DISTRIBUTION.md](DISTRIBUTION.md).

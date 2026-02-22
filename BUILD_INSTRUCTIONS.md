@@ -1,58 +1,57 @@
-# Інструкції для створення інсталятора KeySwitch
+# KeySwitch — Build instructions
 
-## Швидкий старт
+## Quick start
 
-### Варіант 1: DMG файл (рекомендовано)
+### Option 1: DMG (recommended)
 
 ```bash
-cd /Users/roman/Projects/KeySwitch
+cd /path/to/KeySwitch
 ./build_and_package.sh
 ```
 
-Після завершення ви отримаєте файл `KeySwitch.dmg` в папці проекту.
+When done, you will have `KeySwitch.dmg` in the project folder.
 
-### Варіант 2: ZIP архів (альтернатива)
+### Option 2: ZIP archive
 
 ```bash
-cd /Users/roman/Projects/KeySwitch
+cd /path/to/KeySwitch
 ./build_and_zip.sh
 ```
 
-Після завершення ви отримаєте файл `KeySwitch.zip` в папці проекту.
+When done, you will have `KeySwitch.zip` in the project folder.
 
-## Що робити далі
+## Next steps
 
-1. **Перевірте файл**
-   - Переконайтеся, що DMG/ZIP створився успішно
-   - Перевірте розмір файлу (має бути 5-15 MB)
+1. **Verify the artifact**
+   - Confirm that the DMG or ZIP was created successfully
+   - Check file size (typically 5–15 MB)
 
-2. **Протестуйте інсталятор**
-   - Відкрийте DMG/ZIP на іншому Mac (або в іншому користувача)
-   - Встановіть додаток
-   - Переконайтеся, що все працює
+2. **Test the installer**
+   - Open the DMG or ZIP on another Mac (or another user)
+   - Install the app
+   - Confirm everything works
 
-3. **Розповсюдження**
-   - Надішліть DMG/ZIP файл тестеру
-   - Додайте інструкції з файлу `DISTRIBUTION.md`
+3. **Distribute**
+   - Share the DMG or ZIP with testers
+   - Point them to the instructions in `DISTRIBUTION.md`
 
-## Важливі примітки
+## Notes
 
-- **Code Signing**: Зараз додаток збирається без підпису (для тестування це нормально)
-- **Gatekeeper**: macOS може попередити про невідомого розробника - це нормально для тестових версій
-- **Accessibility**: Тестеру потрібно буде надати дозволи вручну
+- **Code signing:** The app is currently built without signing (fine for testing).
+- **Gatekeeper:** macOS may warn about an unidentified developer — normal for unsigned builds.
+- **Accessibility:** Testers will need to grant Accessibility permission manually.
 
-## Якщо щось пішло не так
+## If something goes wrong
 
-1. Перевірте, чи Xcode встановлений
-2. Перевірте, чи всі залежності завантажені (HotKey package)
-3. Перевірте логи збірки на наявність помилок
-4. Спробуйте зібрати проект вручну в Xcode (Product → Archive)
+1. Ensure Xcode is installed
+2. Ensure dependencies are resolved (HotKey package via SPM)
+3. Check the build log for errors
+4. Try building manually in Xcode (Product → Build or Product → Archive)
 
-## Для продакшн-версії
+## Production builds
 
-Якщо потрібно створити підписаний додаток для App Store або розповсюдження:
+For a signed app (e.g. for distribution or App Store):
 
-1. Налаштуйте Code Signing в Xcode
-2. Використайте Xcode → Product → Archive
-3. Експортуйте через Organizer
-
+1. Configure code signing in Xcode
+2. Use Xcode → Product → Archive
+3. Export via the Organizer

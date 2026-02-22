@@ -1,130 +1,130 @@
-# KeySwitch - Distribution Guide
+# KeySwitch — Distribution Guide
 
-## Для розробника: Створення інсталятора
+## For developers: Creating the installer
 
-### Швидкий старт
+### Quick start
 
-1. Відкрийте термінал в папці проекту:
+1. Open a terminal in the project folder:
    ```bash
-   cd /Users/roman/Projects/KeySwitch
+   cd /path/to/KeySwitch
    ```
 
-2. Запустіть скрипт збірки:
+2. Run the build script:
    ```bash
    ./build_and_package.sh
    ```
 
-3. Після завершення ви отримаєте файл `KeySwitch.dmg` в кореневій папці проекту.
+3. When finished, you will get `KeySwitch.dmg` in the project root.
 
-### Що робить скрипт
+### What the script does
 
-- Очищає попередні збірки
-- Збирає проект в Release конфігурації
-- Створює DMG файл з додатком
-- Додає символічне посилання на Applications для зручної установки
+- Cleans previous builds
+- Builds the project in Release configuration
+- Creates a DMG with the app
+- Adds a symlink to Applications for easy install
 
-### Розмір файлу
+### File size
 
-Після збірки DMG файл зазвичай має розмір 5-15 MB (залежить від включених залежностей).
+The DMG is typically about 5–15 MB (depending on dependencies).
 
 ---
 
-## Для тестера: Встановлення та використання
+## For testers: Installation and usage
 
-### Встановлення
+**Currently working:** Clipboard (⌥+V), click-to-copy-and-paste, pin entries, settings.  
+**In development:** Text transformation between layouts (⌃+T) — not yet reliable in all apps.
 
-1. **Відкрийте DMG файл**
-   - Подвійний клік на `KeySwitch.dmg`
-   - Файл змонтується як диск
+### Installation
 
-2. **Встановіть додаток**
-   - Перетягніть `KeySwitch.app` в папку `Applications`
-   - Або скопіюйте файл вручну
+1. **Open the DMG**
+   - Double-click `KeySwitch.dmg`
+   - The image will mount as a disk
 
-3. **Запустіть додаток**
-   - Відкрийте `Applications` (⌘+Shift+A)
-   - Знайдіть `KeySwitch` і запустіть його
-   - **Примітка**: При першому запуску macOS може попросити підтвердження
+2. **Install the app**
+   - Drag `KeySwitch.app` into the `Applications` folder
+   - Or copy it manually
 
-4. **Надайте дозволи**
-   - Після запуску система попросить надати **Accessibility** дозволи
-   - Перейдіть в **System Settings → Privacy & Security → Accessibility**
-   - Увімкніть перемикач біля **KeySwitch**
-   - Якщо KeySwitch не з'являється в списку, додайте його вручну (кнопка "+")
+3. **Launch the app**
+   - Open Applications (⌘+Shift+A)
+   - Find KeySwitch and launch it
+   - **Note:** On first launch, macOS may ask for confirmation
 
-### Використання
+4. **Grant permissions**
+   - After launch you may be asked for **Accessibility** access
+   - Go to **System Settings → Privacy & Security → Accessibility**
+   - Turn on the switch for **KeySwitch**
+   - If KeySwitch is not in the list, add it manually (the "+" button)
 
-#### Буфер обміну (⌥+V)
-- Натисніть **Option + V** для відкриття меню буфера обміну
-- Виберіть потрібний запис для копіювання в буфер
-- Закріплені записи (★) завжди з'являються зверху
+### Usage
 
-#### Перетворення тексту (⌃+T)
-- Виділіть текст в будь-якому додатку
-- Натисніть **Control + T**
-- Текст буде перетворено між розкладками клавіатури (наприклад, US ↔ UA)
-- Розкладка клавіатури автоматично перемкнеться на наступну
+#### Clipboard (⌥+V) — works
+- Press **Option + V** to open the clipboard menu
+- Click an entry to copy it to the clipboard and **paste it immediately** into the active window (no extra ⌘+V needed)
+- Pinned entries (★) always appear at the top
 
-### Налаштування
+#### Text transformation (⌃+T) — in development
+- Intended: select text → **Control + T** → convert between layouts (e.g. US ↔ Ukrainian) and switch layout
+- This feature is not yet stable in many apps; expect updates
 
-- Клікніть на іконку KeySwitch в меню-барі
-- Виберіть **Settings…**
-- Налаштуйте:
-  - Максимальну кількість записів (за замовчуванням: 20)
-  - Увімкнення/вимкнення історії буфера обміну
+### Settings
 
-### Видалення
+- Click the KeySwitch icon in the menu bar
+- Choose **Settings…**
+- Configure:
+  - Maximum number of entries (default: 20)
+  - Enable or disable clipboard history
 
-1. Закрийте KeySwitch (клік на іконку → Quit)
-2. Видаліть `KeySwitch.app` з папки Applications
-3. Видаліть налаштування (опціонально):
+### Uninstall
+
+1. Quit KeySwitch (click icon → Quit)
+2. Remove `KeySwitch.app` from Applications
+3. Remove preferences (optional):
    ```bash
    rm -rf ~/Library/Preferences/Roman-K.KeySwitch.plist
    ```
 
 ---
 
-## Усунення проблем
+## Troubleshooting
 
-### Додаток не запускається
+### App does not launch
 
-- Перевірте, чи macOS версія відповідає вимогам (macOS 14.0+)
-- Перевірте, чи додаток не заблокований в Security & Privacy
-- Спробуйте запустити з терміналу:
+- Check that your macOS version meets requirements (macOS 14.0+)
+- Check that the app is not blocked in Security & Privacy
+- Try launching from the terminal:
   ```bash
   /Applications/KeySwitch.app/Contents/MacOS/KeySwitch
   ```
 
-### Гарячі клавіші не працюють
+### Hotkeys do not work
 
-- Переконайтеся, що дозволи Accessibility надані
-- Перезапустіть додаток після надання дозволів
-- Перевірте, чи гарячі клавіші не конфліктують з іншими додатками
+- Ensure Accessibility permission is granted
+- Restart the app after granting permission
+- Check that hotkeys do not conflict with other apps
 
-### Не знаходить виділений текст
+### Selected text not found
 
-- Переконайтеся, що текст дійсно виділений
-- Деякі додатки можуть не підтримувати Accessibility API
-- Спробуйте в стандартних додатках (Notes, TextEdit)
+- Ensure text is actually selected
+- Some apps may not support the Accessibility API
+- Try in built-in apps (Notes, TextEdit)
 
-### Не знаходить розкладки клавіатури
+### Keyboard layouts not found
 
-- Переконайтеся, що у вас додано принаймні 2 розкладки клавіатури
-- Перейдіть в **System Settings → Keyboard → Input Sources**
-- Додайте потрібні розкладки (наприклад, US та UA)
-
----
-
-## Технічні деталі
-
-- **Мінімальна версія macOS**: 14.0
-- **Архітектура**: Universal (Intel + Apple Silicon)
-- **Розмір додатку**: ~5-15 MB
-- **Дозволи**: Accessibility (обов'язково)
+- Ensure you have at least two keyboard layouts added
+- Go to **System Settings → Keyboard → Input Sources**
+- Add the layouts you need (e.g. US and Ukrainian)
 
 ---
 
-## Контакти та підтримка
+## Technical details
 
-Якщо виникли проблеми або питання, зверніться до розробника.
+- **Minimum macOS:** 14.0
+- **Architecture:** Universal (Intel + Apple Silicon)
+- **App size:** ~5–15 MB
+- **Permissions:** Accessibility (required)
 
+---
+
+## Support
+
+If you run into issues or have questions, open an issue on GitHub or contact the maintainer.
