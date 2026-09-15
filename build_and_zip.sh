@@ -25,10 +25,14 @@ rm -rf "${BUILD_DIR}"
 rm -f "${ZIP_NAME}"
 
 # Build the project
+# -destination 'generic/platform=macOS' so this produces a universal
+# (arm64 + x86_64) binary instead of just the architecture of whatever
+# Mac happens to run this script - see build_and_package.sh for details.
 echo "📦 Building project..."
 xcodebuild \
     -scheme "${SCHEME}" \
     -configuration "${CONFIGURATION}" \
+    -destination "generic/platform=macOS" \
     -derivedDataPath "${BUILD_DIR}" \
     clean build \
     CODE_SIGN_IDENTITY="" \

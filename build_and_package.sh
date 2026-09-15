@@ -54,9 +54,17 @@ rm -f "${DMG_RW}"
 # permission after installing an update. Annoying, but not a blocker - and
 # it goes away entirely once you have a real Developer ID certificate.
 echo "📦 Building project (ad-hoc signed)..."
+#
+# -destination 'generic/platform=macOS' matters just as much: without it,
+# `xcodebuild build` only builds for the Mac actually running the build
+# (arm64-only on Apple Silicon), silently producing a non-universal binary
+# that won't launch on Intel Macs despite this script's own instructions
+# below claiming "Universal". The generic destination is what makes
+# xcodebuild emit both arm64 and x86_64 slices the way an Archive would.
 xcodebuild \
     -scheme "${SCHEME}" \
     -configuration "${CONFIGURATION}" \
+    -destination "generic/platform=macOS" \
     -derivedDataPath "${BUILD_DIR}" \
     clean build \
     CODE_SIGN_IDENTITY="-" \
