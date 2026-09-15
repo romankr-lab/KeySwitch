@@ -114,7 +114,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             clipboardHotKey = HotKey(key: key, modifiers: modifiers)
             clipboardHotKey?.keyDownHandler = { [weak self] in
                 DispatchQueue.main.async {
-                    self?.statusBarController.showPopoverFromHotKey()
+                    self?.statusBarController.showMenuFromHotKey()
                 }
             }
         } else {
