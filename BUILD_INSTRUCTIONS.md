@@ -1,4 +1,4 @@
-# KeySwitch — Build instructions
+# SwitchBoard — Build instructions
 
 ## Quick start
 
@@ -9,7 +9,7 @@ cd /path/to/KeySwitch
 ./build_and_package.sh
 ```
 
-When done, you will have `KeySwitch.dmg` in the project folder.
+When done, you will have `SwitchBoard.dmg` in the project folder.
 
 ### Option 2: ZIP archive
 
@@ -18,7 +18,7 @@ cd /path/to/KeySwitch
 ./build_and_zip.sh
 ```
 
-When done, you will have `KeySwitch.zip` in the project folder.
+When done, you will have `SwitchBoard.zip` in the project folder.
 
 ## Next steps
 

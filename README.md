@@ -1,4 +1,6 @@
-# KeySwitch
+# SwitchBoard
+
+*(formerly KeySwitch)*
 
 A free, lightweight macOS menu bar app that combines **clipboard history** with **automatic keyboard layout correction**. No Dock icon — runs from the status bar only.
 
@@ -10,7 +12,7 @@ A free, lightweight macOS menu bar app that combines **clipboard history** with 
 
 **Clipboard history** — every copy is saved. Open the menu from the status bar (or ⌥ Option + V), click any entry to copy it and paste it immediately into the focused app. Pin important entries to keep them at the top.
 
-**Layout correction** — fixes text typed in the wrong keyboard layout. Select the garbled text, press ⌥ Option + T, and KeySwitch converts it to the correct layout in place.
+**Layout correction** — fixes text typed in the wrong keyboard layout. Select the garbled text, press ⌥ Option + T, and SwitchBoard converts it to the correct layout in place.
 
 | Before | After |
 |--------|-------|
@@ -26,11 +28,11 @@ A free, lightweight macOS menu bar app that combines **clipboard history** with 
 
 ## Installation
 
-1. Go to [Releases](https://github.com/romankr-lab/keyswitch/releases) and download the latest `KeySwitch.dmg`.
-2. Open the DMG and drag **KeySwitch.app** into **Applications**.
+1. Go to [Releases](https://github.com/romankr-lab/keyswitch/releases) and download the latest `SwitchBoard.dmg`.
+2. Open the DMG and drag **SwitchBoard.app** into **Applications**.
 3. In Applications, **right-click → Open** the first time (required since the app isn't notarized with a paid Developer ID — this is expected for a free, independently distributed app).
 4. Grant **Accessibility** access when prompted (**System Settings → Privacy & Security → Accessibility**). This is required for global hotkeys and layout correction.
-5. On first launch, KeySwitch will also ask if you'd like it to start automatically at login.
+5. On first launch, SwitchBoard will also ask if you'd like it to start automatically at login.
 
 ### Build from source
 
@@ -40,7 +42,7 @@ cd keyswitch
 ./build_and_package.sh
 ```
 
-This produces `KeySwitch.dmg` in the project folder. Or just open `KeySwitch.xcodeproj` in Xcode and build (⌘B).
+This produces `SwitchBoard.dmg` in the project folder. Or just open `KeySwitch.xcodeproj` in Xcode and build (⌘B).
 
 ## Default shortcuts
 

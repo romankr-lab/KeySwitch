@@ -5,14 +5,19 @@
 
 set -e  # Exit on error
 
+# SCHEME/PROJECT_NAME is the Xcode project & scheme name, unchanged since
+# the SwitchBoard rebrand to avoid renaming the .xcodeproj/target. APP_NAME
+# is the actual product name (PRODUCT_NAME build setting) - the two now
+# differ on purpose.
 PROJECT_NAME="KeySwitch"
 SCHEME="KeySwitch"
+APP_NAME_BASE="SwitchBoard"
 CONFIGURATION="Release"
 BUILD_DIR="build"
-ZIP_NAME="${PROJECT_NAME}.zip"
-APP_NAME="${PROJECT_NAME}.app"
+ZIP_NAME="${APP_NAME_BASE}.zip"
+APP_NAME="${APP_NAME_BASE}.app"
 
-echo "🔨 Building ${PROJECT_NAME} in ${CONFIGURATION} configuration..."
+echo "🔨 Building ${APP_NAME_BASE} in ${CONFIGURATION} configuration..."
 
 # Clean previous build
 echo "🧹 Cleaning previous build..."

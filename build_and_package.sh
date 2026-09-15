@@ -8,18 +8,23 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# SCHEME/PROJECT_NAME is the Xcode project & scheme name, unchanged since
+# the SwitchBoard rebrand to avoid renaming the .xcodeproj/target. APP_NAME
+# is the actual product name (PRODUCT_NAME build setting) - the two now
+# differ on purpose.
 PROJECT_NAME="KeySwitch"
 SCHEME="KeySwitch"
+APP_NAME_BASE="SwitchBoard"
 CONFIGURATION="Release"
 BUILD_DIR="build"
-DMG_NAME="${PROJECT_NAME}.dmg"
-APP_NAME="${PROJECT_NAME}.app"
+DMG_NAME="${APP_NAME_BASE}.dmg"
+APP_NAME="${APP_NAME_BASE}.app"
 DMG_TEMP="dmg_temp"
 DMG_RW="dmg_rw.dmg"
-VOLUME_NAME="${PROJECT_NAME}"
+VOLUME_NAME="${APP_NAME_BASE}"
 BACKGROUND_IMG="packaging/dmg_background.png"
 
-echo "🔨 Building ${PROJECT_NAME} in ${CONFIGURATION} configuration..."
+echo "🔨 Building ${APP_NAME_BASE} in ${CONFIGURATION} configuration..."
 
 # Clean previous build
 echo "🧹 Cleaning previous build..."
@@ -99,7 +104,7 @@ echo ""
 
 # Confirm universal (Intel + Apple Silicon) binary
 echo "🏗  Verifying architectures..."
-lipo -info "${APP_PATH}/Contents/MacOS/${PROJECT_NAME}" || true
+lipo -info "${APP_PATH}/Contents/MacOS/${APP_NAME_BASE}" || true
 echo ""
 
 # ----- DMG layout -----

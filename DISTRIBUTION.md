@@ -1,4 +1,4 @@
-# KeySwitch — Distribution Guide
+# SwitchBoard — Distribution Guide
 
 ## For developers: Creating the installer
 
@@ -14,7 +14,7 @@
    ./build_and_package.sh
    ```
 
-3. When finished, you will get `KeySwitch.dmg` in the project root.
+3. When finished, you will get `SwitchBoard.dmg` in the project root.
 
 ### What the script does
 
@@ -37,23 +37,23 @@ The DMG is typically about 5–15 MB (depending on dependencies).
 ### Installation
 
 1. **Open the DMG**
-   - Double-click `KeySwitch.dmg`
+   - Double-click `SwitchBoard.dmg`
    - The image will mount as a disk
 
 2. **Install the app**
-   - Drag `KeySwitch.app` into the `Applications` folder
+   - Drag `SwitchBoard.app` into the `Applications` folder
    - Or copy it manually
 
 3. **Launch the app**
    - Open Applications (⌘+Shift+A)
-   - Find KeySwitch and launch it
+   - Find SwitchBoard and launch it
    - **Note:** On first launch, macOS may ask for confirmation
 
 4. **Grant permissions**
    - After launch you may be asked for **Accessibility** access
    - Go to **System Settings → Privacy & Security → Accessibility**
-   - Turn on the switch for **KeySwitch**
-   - If KeySwitch is not in the list, add it manually (the "+" button)
+   - Turn on the switch for **SwitchBoard**
+   - If SwitchBoard is not in the list, add it manually (the "+" button)
 
 ### Usage
 
@@ -68,7 +68,7 @@ The DMG is typically about 5–15 MB (depending on dependencies).
 
 ### Settings
 
-- Click the KeySwitch icon in the menu bar
+- Click the SwitchBoard icon in the menu bar
 - Choose **Settings…**
 - Configure:
   - Maximum number of entries (default: 20)
@@ -76,8 +76,8 @@ The DMG is typically about 5–15 MB (depending on dependencies).
 
 ### Uninstall
 
-1. Quit KeySwitch (click icon → Quit)
-2. Remove `KeySwitch.app` from Applications
+1. Quit SwitchBoard (click icon → Quit)
+2. Remove `SwitchBoard.app` from Applications
 3. Remove preferences (optional):
    ```bash
    rm -rf ~/Library/Preferences/Roman-K.KeySwitch.plist
@@ -93,7 +93,7 @@ The DMG is typically about 5–15 MB (depending on dependencies).
 - Check that the app is not blocked in Security & Privacy
 - Try launching from the terminal:
   ```bash
-  /Applications/KeySwitch.app/Contents/MacOS/KeySwitch
+  /Applications/SwitchBoard.app/Contents/MacOS/SwitchBoard
   ```
 
 ### Hotkeys do not work
