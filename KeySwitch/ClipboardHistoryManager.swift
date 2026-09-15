@@ -176,16 +176,15 @@ class ClipboardHistoryManager {
         }
 
         for index in indicesToRemove.sorted(by: >) {
+            // Drop the pin along with the entry - otherwise pinnedIDs would
+            // keep accumulating IDs for entries that no longer exist in
+            // `items`, growing unbounded over a long-running session.
+            pinnedIDs.remove(items[index].id)
             items.remove(at: index)
         }
     }
 
     // ====== PUBLIC METHODS FOR MENU ======
-
-    /// Legacy method that simply returns recent items (if still called somewhere)
-    func visibleItems() -> [ClipboardEntry] {
-        return visibleRecentItems()
-    }
 
     /// Items for Recent block (without pinned)
     func visibleRecentItems() -> [ClipboardEntry] {

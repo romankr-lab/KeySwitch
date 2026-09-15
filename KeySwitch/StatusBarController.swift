@@ -293,12 +293,10 @@ extension StatusBarController {
         switch entry.content {
         case .text(let text):
             pb.setString(text, forType: .string)
-            NSLog("📋 Selected from history (text): \(text.prefix(50))...")
-            print("📋 Selected from history (text): \(text.prefix(50))...")
+            NSLog("📋 Selected from history (text, length=\(text.count))")
         case .image(let data):
             pb.setData(data, forType: .png)
             NSLog("📋 Selected from history (image, \(data.count) bytes)")
-            print("📋 Selected from history (image, \(data.count) bytes)")
         }
 
         // Automatically paste using ⌘+V simulation (works for both text and images)
@@ -307,51 +305,32 @@ extension StatusBarController {
 
     /// Simulates ⌘+V to paste text from clipboard
     private func pasteTextFromClipboard(restoreFocusTo frontmostApp: NSRunningApplication? = nil) {
-        NSLog("🔧 Starting paste operation...")
-        print("🔧 Starting paste operation...")
-
         // Restore focus to the previous app if needed
         if let app = frontmostApp {
             NSLog("🔧 Restoring focus to: \(app.localizedName ?? "unknown")")
-            print("🔧 Restoring focus to: \(app.localizedName ?? "unknown")")
             app.activate(options: [])
         }
 
         // Longer delay to ensure clipboard is ready, menu is closed, and focus is restored
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            NSLog("🔧 Creating event source for paste...")
-            print("🔧 Creating event source for paste...")
-
             guard let source = CGEventSource(stateID: .hidSystemState) else {
                 NSLog("❌ Failed to create event source for paste")
-                print("❌ Failed to create event source for paste")
                 return
             }
 
             // Simulate ⌘+V (V key = 0x09)
-            NSLog("🔧 Simulating ⌘+V key down...")
-            print("🔧 Simulating ⌘+V key down...")
-
             let vKeyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
             vKeyDown?.flags = .maskCommand
             vKeyDown?.post(tap: .cghidEventTap)
-            NSLog("🔧 Key down posted")
-            print("🔧 Key down posted")
 
             // Small delay between key down and key up
             usleep(10000) // 10ms
 
-            NSLog("🔧 Simulating ⌘+V key up...")
-            print("🔧 Simulating ⌘+V key up...")
-
             let vKeyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
             vKeyUp?.flags = .maskCommand
             vKeyUp?.post(tap: .cghidEventTap)
-            NSLog("🔧 Key up posted")
-            print("🔧 Key up posted")
 
             NSLog("✅ Paste command (⌘+V) simulated")
-            print("✅ Paste command (⌘+V) simulated")
         }
     }
 }

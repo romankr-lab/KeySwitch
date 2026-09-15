@@ -39,7 +39,6 @@ class LayoutManager {
     /// Gets list of all active keyboard layouts
     func getActiveLayouts() -> [KeyboardLayout] {
         os_log("Getting active layouts...", log: logger, type: .info)
-        print("🔍 Getting active layouts...")
         var layouts: [KeyboardLayout] = []
 
         // FIX 1: the real API is TISCreateInputSourceList, not
@@ -58,18 +57,15 @@ class LayoutManager {
         // the 2-3 layouts the user actually added in System Settings.
         guard let inputSourceListUnmanaged = TISCreateInputSourceList(nil, false) else {
             os_log("❌ TISCreateInputSourceList returned nil", log: logger, type: .error)
-            print("❌ TISCreateInputSourceList returned nil")
             return []
         }
 
         let inputSourceList = inputSourceListUnmanaged.takeRetainedValue()
         os_log("✅ Got input source list from TISCreateInputSourceList", log: logger, type: .info)
-        print("✅ Got input source list")
 
         let count = CFArrayGetCount(inputSourceList)
         let keyboardCategory = kTISCategoryKeyboardInputSource as String
         os_log("📋 Found %d total input sources", log: logger, type: .info, count)
-        print("📋 Found \(count) input sources total")
 
         for i in 0..<count {
             let value = CFArrayGetValueAtIndex(inputSourceList, i)
@@ -104,20 +100,16 @@ class LayoutManager {
             if isKeyboardLayout && isSelectable {
                 if let layout = KeyboardLayout(source: source) {
                     os_log("  ✅ Added layout: %{public}@ (%{public}@)", log: logger, type: .info, layout.name, layout.id)
-                    print("  ✅ Added layout: \(layout.name) (\(layout.id))")
                     layouts.append(layout)
                 } else {
                     os_log("  ❌ Failed to create layout from source %d", log: logger, type: .error, i)
-                    print("  ❌ Failed to create layout from source \(i)")
                 }
             }
         }
 
         os_log("🎯 Total keyboard layouts found: %d", log: logger, type: .info, layouts.count)
-        print("🎯 Total keyboard layouts found: \(layouts.count)")
         if layouts.isEmpty {
             os_log("⚠️ No keyboard layouts found! Check System Settings → Keyboard → Input Sources", log: logger, type: .error)
-            print("⚠️ No keyboard layouts found! Check System Settings → Keyboard → Input Sources")
         }
         return layouts
     }
@@ -125,11 +117,9 @@ class LayoutManager {
     /// Gets current active layout
     func getCurrentLayout() -> KeyboardLayout? {
         os_log("🔍 Getting current keyboard layout...", log: logger, type: .info)
-        print("🔍 Getting current keyboard layout...")
 
         guard let currentSourceUnmanaged = TISCopyCurrentKeyboardInputSource() else {
             os_log("❌ TISCopyCurrentKeyboardInputSource returned nil", log: logger, type: .error)
-            print("❌ TISCopyCurrentKeyboardInputSource returned nil")
             return nil
         }
 
@@ -137,12 +127,10 @@ class LayoutManager {
 
         guard let layout = KeyboardLayout(source: currentSource) else {
             os_log("❌ Failed to create KeyboardLayout from source", log: logger, type: .error)
-            print("❌ Failed to create KeyboardLayout from source")
             return nil
         }
 
         os_log("✅ Current layout: %{public}@ (%{public}@)", log: logger, type: .info, layout.name, layout.id)
-        print("✅ Current layout: \(layout.name) (\(layout.id))")
         return layout
     }
 

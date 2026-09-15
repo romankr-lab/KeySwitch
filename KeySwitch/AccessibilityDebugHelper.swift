@@ -1,9 +1,12 @@
+#if DEBUG
 import Cocoa
 import ApplicationServices
 import os.log
 import Security
 
 /// Utility for diagnosing Accessibility issues (updated to work correctly in release builds)
+/// Debug-only: entirely excluded from Release builds since it's only ever
+/// invoked from the Settings window's #if DEBUG-only "Debug Accessibility…" button.
 final class AccessibilityDebugHelper {
     static let shared = AccessibilityDebugHelper()
     private let logger = OSLog(subsystem: "com.romank.keyswitch", category: "AccessibilityDebug")
@@ -270,3 +273,4 @@ final class AccessibilityDebugHelper {
         }
     }
 }
+#endif

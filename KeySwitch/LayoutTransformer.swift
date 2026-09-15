@@ -28,6 +28,13 @@ class LayoutTransformer {
         /// Lowercase Latin key character -> lowercase target-script character,
         /// plus any punctuation keys that also change (bracket/semicolon/
         /// comma/period/slash keys, which many of these layouts repurpose).
+        ///
+        /// IMPORTANT: every value in this map must be unique. reverseMap()
+        /// builds the target-script -> Latin direction by inverting this
+        /// dictionary, and Swift's Dictionary iteration order is randomized
+        /// per process launch - two keys mapping to the same target
+        /// character would make the reverse mapping for that character
+        /// non-deterministic (could differ between app launches).
         let baseMap: [Character: Character]
 
         func matches(_ layoutID: String) -> Bool {
@@ -60,8 +67,8 @@ class LayoutTransformer {
                 "q": "й", "w": "ц", "e": "у", "r": "к", "t": "е", "y": "н", "u": "г", "i": "ш", "o": "щ", "p": "з",
                 "a": "ф", "s": "і", "d": "в", "f": "а", "g": "п", "h": "р", "j": "о", "k": "л", "l": "д",
                 "z": "я", "x": "ч", "c": "с", "v": "м", "b": "и", "n": "т", "m": "ь",
-                "[": "х", "]": "ї", "\\": "є",
-                "{": "Х", "}": "Ї", "|": "Є",
+                "[": "х", "]": "ї", "\\": "ґ",
+                "{": "Х", "}": "Ї", "|": "Ґ",
                 ";": "ж", "'": "є",
                 ":": "Ж", "\"": "Є",
                 ",": "б", ".": "ю", "/": ".",
@@ -153,6 +160,8 @@ class LayoutTransformer {
         let forward = forwardMap(for: definition)
         var reverse: [Character: Character] = [:]
         for (latin, target) in forward {
+            assert(reverse[target] == nil,
+                   "\(definition.name) layout: '\(target)' is produced by both '\(reverse[target] ?? " ")' and '\(latin)' - reverse mapping would be non-deterministic. Fix baseMap so every value is unique.")
             reverse[target] = latin
         }
         return reverse

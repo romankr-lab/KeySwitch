@@ -104,7 +104,7 @@ class TextSelectionManager {
         var windowSelectedText: AnyObject?
         let windowTextResult = AXUIElementCopyAttributeValue(window, kAXSelectedTextAttribute as CFString, &windowSelectedText)
         if windowTextResult == .success, let text = windowSelectedText as? String, !text.isEmpty {
-            NSLog("TSM: Got selected text directly from window: length=\(text.count), preview=\(text.prefix(50))")
+            NSLog("TSM: Got selected text directly from window: length=\(text.count)")
             return text
         }
 
@@ -120,7 +120,7 @@ class TextSelectionManager {
             let textResult = AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selectedText)
 
             if textResult == .success, let text = selectedText as? String, !text.isEmpty {
-                NSLog("TSM: Got selected text via kAXSelectedTextAttribute: length=\(text.count), preview=\(text.prefix(50))")
+                NSLog("TSM: Got selected text via kAXSelectedTextAttribute: length=\(text.count)")
                 return text
             } else {
                 NSLog("TSM: kAXSelectedTextAttribute failed: error=\(textResult.rawValue), text=\(selectedText != nil ? "exists but empty" : "nil")")
@@ -128,7 +128,7 @@ class TextSelectionManager {
 
             // Alternative method: get via kAXSelectedTextRange
             if let text = getSelectedTextViaRange(element) {
-                NSLog("TSM: Got selected text via kAXSelectedTextRange: length=\(text.count), preview=\(text.prefix(50))")
+                NSLog("TSM: Got selected text via kAXSelectedTextRange: length=\(text.count)")
                 return text
             }
         } else {
@@ -136,7 +136,7 @@ class TextSelectionManager {
 
             // Method 3: Search all elements in window for selected text
             if let text = searchForSelectedTextInWindow(window) {
-                NSLog("TSM: Found selected text by searching window elements: length=\(text.count), preview=\(text.prefix(50))")
+                NSLog("TSM: Found selected text by searching window elements: length=\(text.count)")
                 return text
             }
         }
@@ -160,9 +160,14 @@ class TextSelectionManager {
 
         NSLog("TSM: Found \(childrenArray.count) children in window")
 
-        // Search recursively in children
+        // Search recursively in children. Depth/breadth limits alone don't
+        // bound the worst case (a deep, wide tree in a complex web/Electron
+        // view could still mean a lot of AX round-trips) - a wall-clock
+        // deadline caps how long this can block the main thread regardless
+        // of tree shape, before falling through to the clipboard fallback.
+        let deadline = Date().addingTimeInterval(0.3)
         for child in childrenArray {
-            if let text = searchForSelectedTextInElement(child, depth: 0) {
+            if let text = searchForSelectedTextInElement(child, depth: 0, deadline: deadline) {
                 return text
             }
         }
@@ -171,22 +176,23 @@ class TextSelectionManager {
     }
 
     /// Recursively searches for selected text in an element and its children
-    private func searchForSelectedTextInElement(_ element: AXUIElement, depth: Int = 0) -> String? {
-        // Limit recursion depth to avoid infinite loops
-        guard depth < 10 else { return nil }
+    private func searchForSelectedTextInElement(_ element: AXUIElement, depth: Int, deadline: Date) -> String? {
+        // Limit recursion depth to avoid infinite loops, and bail out once
+        // we've spent too long searching (see searchForSelectedTextInWindow).
+        guard depth < 10, Date() < deadline else { return nil }
 
         // Try to get selected text from this element
         var selectedText: AnyObject?
         let textResult = AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selectedText)
 
         if textResult == .success, let text = selectedText as? String, !text.isEmpty {
-            NSLog("TSM: Found selected text in element (depth=\(depth)): length=\(text.count), preview=\(text.prefix(50))")
+            NSLog("TSM: Found selected text in element (depth=\(depth)): length=\(text.count)")
             return text
         }
 
         // Try via range method
         if let text = getSelectedTextViaRange(element) {
-            NSLog("TSM: Found selected text via range in element (depth=\(depth)): length=\(text.count), preview=\(text.prefix(50))")
+            NSLog("TSM: Found selected text via range in element (depth=\(depth)): length=\(text.count)")
             return text
         }
 
@@ -217,7 +223,7 @@ class TextSelectionManager {
 
         if childrenResult == .success, let childrenArray = children as? [AXUIElement] {
             for (index, child) in childrenArray.prefix(50).enumerated() { // Increased limit to 50
-                if let text = searchForSelectedTextInElement(child, depth: depth + 1) {
+                if let text = searchForSelectedTextInElement(child, depth: depth + 1, deadline: deadline) {
                     NSLog("TSM: Found text in child \(index) at depth \(depth)")
                     return text
                 }
@@ -268,24 +274,23 @@ class TextSelectionManager {
         let oldContents = pasteboard.string(forType: .string) // Save previous contents
 
         os_log("TSM: Attempting to copy selected text via ⌘+C...", log: logger, type: .info)
-        print("TSM: Attempting to copy selected text via ⌘+C...")
 
         // Simulate ⌘+C to copy the selected text
         guard let source = CGEventSource(stateID: .hidSystemState) else {
-            print("TSM: Failed to create event source")
+            os_log("TSM: Failed to create event source", log: logger, type: .error)
             return nil
         }
 
         // Press ⌘+C
         guard let cKeyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: true) else {
-            print("TSM: Failed to create key down event")
+            os_log("TSM: Failed to create key down event", log: logger, type: .error)
             return nil
         }
         cKeyDown.flags = .maskCommand
         cKeyDown.post(tap: .cghidEventTap)
 
         guard let cKeyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: false) else {
-            print("TSM: Failed to create key up event")
+            os_log("TSM: Failed to create key up event", log: logger, type: .error)
             return nil
         }
         cKeyUp.flags = .maskCommand
@@ -309,7 +314,6 @@ class TextSelectionManager {
         // Check whether the content actually changed (to avoid returning stale content)
         if let old = oldContents, let new = copiedText, old == new {
             os_log("TSM: Clipboard content did not change - no text was selected or copied", log: logger, type: .error)
-            print("TSM: Clipboard content did not change - no text was selected or copied")
             return nil
         }
 
@@ -323,12 +327,10 @@ class TextSelectionManager {
 
         if let text = copiedText, !text.isEmpty {
             os_log("TSM: ✅ Successfully got selected text via clipboard (length=%d)", log: logger, type: .info, text.count)
-            print("TSM: Successfully got selected text via clipboard: \(text.prefix(50))...")
             return text
         }
 
         os_log("TSM: ❌ No text found in clipboard after ⌘+C", log: logger, type: .error)
-        print("TSM: No text found in clipboard after ⌘+C")
         return nil
     }
 
