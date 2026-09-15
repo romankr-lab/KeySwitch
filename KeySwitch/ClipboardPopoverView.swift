@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 /// Bridges ClipboardHistoryManager's NotificationCenter-based updates into
 /// SwiftUI's observation model so ClipboardPopoverView redraws whenever the

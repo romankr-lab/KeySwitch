@@ -1,6 +1,17 @@
 import AppKit
 import SwiftUI
 
+/// A borderless NSPanel refuses key status by default (`canBecomeKeyWindow`
+/// returns NO), which AppKit logs as a console warning on every
+/// makeKeyAndOrderFront and would leave SwiftUI content unable to receive
+/// keyboard events. `.nonactivatingPanel` in the style mask means becoming
+/// key still doesn't activate the owning app, so this override doesn't
+/// reintroduce the focus-stealing problem noted below.
+private final class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+}
+
 /// Hosts ClipboardPopoverView in a borderless, non-activating NSPanel
 /// anchored below the status bar item - a custom "floating panel" rather
 /// than a genuine NSPopover, since NSPopover always draws its own chrome
@@ -61,7 +72,7 @@ final class ClipboardPopoverWindowController: NSObject {
         let hosting = NSHostingController(rootView: view)
         hosting.view.appearance = NSAppearance(named: .darkAqua)
 
-        let panel = NSPanel(contentViewController: hosting)
+        let panel = KeyablePanel(contentViewController: hosting)
         panel.styleMask = [.borderless, .nonactivatingPanel]
         panel.isOpaque = false
         panel.backgroundColor = .clear

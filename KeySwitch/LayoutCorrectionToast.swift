@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 /// Drives the opacity+scale show/dismiss animation of the toast. Owned by
 /// the controller so it can trigger the "animate out, then close the window"
