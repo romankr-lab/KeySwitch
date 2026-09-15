@@ -242,7 +242,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if textManager.replaceSelectedText(with: transformedText) {
             _ = layoutManager.switchToLayout(nextLayout)
             NSLog("✅ Text transformed from \(currentLayout.name) to \(nextLayout.name)")
-            LayoutCorrectionToastController.shared.show(original: text, corrected: transformedText)
+            LayoutCorrectionToast.show(original: text, corrected: transformedText)
         } else {
             NSLog("❌ Failed to replace selected text")
             showNotification(title: "SwitchBoard", message: "Failed to replace text. Check Accessibility permissions in System Settings → Privacy & Security → Accessibility")
