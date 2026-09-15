@@ -11,18 +11,21 @@ class StatusBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            // Minimalist line-art keycap glyph ("V", the clipboard-history
-            // hotkey) - matches the SwitchBoard design language and needs no
-            // custom asset. Template rendering lets macOS tint it correctly
-            // for the light/dark menu bar and the highlighted state.
-            if let icon = NSImage(systemSymbolName: "v.square", accessibilityDescription: "SwitchBoard") {
+            // "SB" monogram badge - a brand mark rather than a function mark
+            // (same move CleanShot/Bartender make), drawn as a vector
+            // template PDF in Assets.xcassets/StatusBarIcon so it stays
+            // crisp at any menu bar scale. Template rendering lets macOS
+            // tint it correctly for the light/dark menu bar and the
+            // highlighted state.
+            if let icon = NSImage(named: "StatusBarIcon") {
                 icon.isTemplate = true
+                icon.accessibilityDescription = "SwitchBoard"
                 button.image = icon
                 button.title = ""
             } else {
-                // Extremely unlikely (v.square has shipped since SF Symbols
-                // 2), but never leave the status item blank if it happens.
-                button.title = "V"
+                // Never leave the status item blank if the asset is ever
+                // missing from the bundle.
+                button.title = "SB"
             }
             button.action = #selector(statusItemClicked)
             button.target = self
