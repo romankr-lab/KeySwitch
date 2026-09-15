@@ -21,7 +21,7 @@ class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "KeySwitch Settings"
+        window.title = "SwitchBoard Settings"
         window.center()
         window.isReleasedWhenClosed = false
 
@@ -64,7 +64,7 @@ class SettingsViewController: NSViewController {
         // ---------- Launch at Login ----------
         cursorTop -= 22
         launchAtLoginCheckbox = NSButton(
-            checkboxWithTitle: "Launch KeySwitch at login",
+            checkboxWithTitle: "Launch SwitchBoard at login",
             target: self,
             action: #selector(launchAtLoginToggled(_:))
         )

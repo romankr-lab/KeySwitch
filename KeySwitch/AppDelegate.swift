@@ -80,8 +80,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.set(true, forKey: key)
 
         let alert = NSAlert()
-        alert.messageText = "Launch KeySwitch at Login?"
-        alert.informativeText = "KeySwitch works best running in the background all the time. Want it to start automatically when you log in?"
+        alert.messageText = "Launch SwitchBoard at Login?"
+        alert.informativeText = "SwitchBoard works best running in the background all the time. Want it to start automatically when you log in?"
         alert.addButton(withTitle: "Enable")
         alert.addButton(withTitle: "Not Now")
         alert.alertStyle = .informational
@@ -114,7 +114,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             clipboardHotKey = HotKey(key: key, modifiers: modifiers)
             clipboardHotKey?.keyDownHandler = { [weak self] in
                 DispatchQueue.main.async {
-                    self?.statusBarController.showMenuFromHotKey()
+                    self?.statusBarController.showPopoverFromHotKey()
                 }
             }
         } else {
@@ -183,8 +183,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 if selectedText == nil || selectedText?.isEmpty == true {
                     showNotification(
-                        title: "KeySwitch",
-                        message: "Accessibility permissions required. Please enable KeySwitch in System Settings → Privacy & Security → Accessibility"
+                        title: "SwitchBoard",
+                        message: "Accessibility permissions required. Please enable SwitchBoard in System Settings → Privacy & Security → Accessibility"
                     )
 
                     // Open System Settings
@@ -197,20 +197,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             } else {
                 // Permissions work, but no text selected
-                showNotification(title: "KeySwitch", message: "No text selected. Please select some text first.")
+                showNotification(title: "SwitchBoard", message: "No text selected. Please select some text first.")
                 return
             }
         }
 
         // At this point, we have selectedText
         guard let text = selectedText, !text.isEmpty else {
-            showNotification(title: "KeySwitch", message: "No text selected. Please select some text first.")
+            showNotification(title: "SwitchBoard", message: "No text selected. Please select some text first.")
             return
         }
 
         // Get current and next layouts
         guard let currentLayout = layoutManager.getCurrentLayout() else {
-            showNotification(title: "KeySwitch", message: "Could not determine current layout")
+            showNotification(title: "SwitchBoard", message: "Could not determine current layout")
             return
         }
 
@@ -219,17 +219,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             if layouts.isEmpty {
                 showNotification(
-                    title: "KeySwitch",
+                    title: "SwitchBoard",
                     message: "No keyboard layouts found. Please add layouts in System Settings → Keyboard → Input Sources"
                 )
             } else if layouts.count == 1 {
                 showNotification(
-                    title: "KeySwitch",
+                    title: "SwitchBoard",
                     message: "Only one layout available (\(layouts.first?.name ?? "unknown")). Please add another layout in System Settings → Keyboard → Input Sources"
                 )
             } else {
                 showNotification(
-                    title: "KeySwitch",
+                    title: "SwitchBoard",
                     message: "Could not determine next layout. Found \(layouts.count) layouts."
                 )
             }
@@ -242,9 +242,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if textManager.replaceSelectedText(with: transformedText) {
             _ = layoutManager.switchToLayout(nextLayout)
             NSLog("✅ Text transformed from \(currentLayout.name) to \(nextLayout.name)")
+            LayoutCorrectionToastController.shared.show(original: text, corrected: transformedText)
         } else {
             NSLog("❌ Failed to replace selected text")
-            showNotification(title: "KeySwitch", message: "Failed to replace text. Check Accessibility permissions in System Settings → Privacy & Security → Accessibility")
+            showNotification(title: "SwitchBoard", message: "Failed to replace text. Check Accessibility permissions in System Settings → Privacy & Security → Accessibility")
         }
     }
 
@@ -280,7 +281,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Uses the authoritative AXIsProcessTrusted() check here rather than
     /// TextSelectionManager's "practical test" (which probes the frontmost
     /// app's focused window) - right after launch the frontmost app can
-    /// briefly be KeySwitch's own permission window, and testing against
+    /// briefly be SwitchBoard's own permission window, and testing against
     /// itself gave a false positive before permission was actually granted.
     private func startAccessibilityPermissionPolling() {
         accessibilityPollTimer?.invalidate()

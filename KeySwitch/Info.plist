@@ -12,6 +12,8 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleDisplayName</key>
+	<string>SwitchBoard</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,7 +27,7 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>KeySwitch needs Accessibility access to read and transform selected text between keyboard layouts.</string>
+	<string>SwitchBoard needs Accessibility access to read and transform selected text between keyboard layouts.</string>
 </dict>
 </plist>
 

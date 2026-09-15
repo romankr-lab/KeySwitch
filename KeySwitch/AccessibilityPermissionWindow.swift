@@ -12,7 +12,7 @@ class AccessibilityPermissionWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "KeySwitch - Accessibility Permission Required"
+        window.title = "SwitchBoard - Accessibility Permission Required"
         window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
@@ -57,7 +57,7 @@ class AccessibilityPermissionViewController: NSViewController {
         view.addSubview(titleLabel)
 
         // Message label
-        let messageLabel = NSTextField(wrappingLabelWithString: "KeySwitch needs Accessibility permissions to work properly.\n\nPlease grant access in System Settings to enable text transformation and clipboard features.")
+        let messageLabel = NSTextField(wrappingLabelWithString: "SwitchBoard needs Accessibility permissions to work properly.\n\nPlease grant access in System Settings to enable text transformation and clipboard features.")
         messageLabel.font = NSFont.systemFont(ofSize: 13)
         messageLabel.alignment = .center
         messageLabel.maximumNumberOfLines = 0
