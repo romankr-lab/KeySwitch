@@ -53,7 +53,7 @@ env:
 
 jobs:
   release:
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
     steps:
@@ -70,7 +70,15 @@ jobs:
           echo "marketing_version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app
+        # This project's .xcodeproj was last saved by Xcode 26.1.1
+        # (objectVersion 77) - older Xcode can't even parse the file
+        # ("future Xcode project file format"), so we can't just take
+        # the runner's default. macos-15 runner images ship 26.1.1
+        # alongside their default at /Applications/Xcode_26.1.1.app -
+        # bump this if the project file format is ever upgraded further.
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.1.1.app
+          xcodebuild -version
 
       - name: Resolve Swift Package dependencies
         run: |
