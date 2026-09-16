@@ -7,12 +7,15 @@ import AppKit
 /// ClipboardMenuRowView.
 enum SBColor {
     static let textPrimary = Color.white
-    /// #8B949E
-    static let textSecondary = Color(red: 0x8B / 255.0, green: 0x94 / 255.0, blue: 0x96 / 255.0)
+    static let textSecondary = Color.white.opacity(0.6)
 
-    static let border = Color.white.opacity(0.1)
-    static let cardHover = Color.white.opacity(0.08)
-    static let keycapFill = Color.white.opacity(0.06)
+    static let border = Color.white.opacity(0.12)
+    static let cardHover = Color.white.opacity(0.1)
+
+    /// Keycap badge text and outline - subtle by design, no fill, so the
+    /// badge reads as a hint rather than competing with row content.
+    static let keycapText = Color.white.opacity(0.5)
+    static let keycapBorder = Color.white.opacity(0.2)
 }
 
 enum SBFont {
@@ -37,17 +40,13 @@ struct KeycapBadge: View {
     var body: some View {
         Text(text)
             .font(SBFont.mono(11, weight: .semibold))
-            .foregroundColor(SBColor.textPrimary)
+            .foregroundColor(SBColor.keycapText)
             .frame(minWidth: minWidth)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(SBColor.keycapFill)
-            )
             .overlay(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .stroke(SBColor.border, lineWidth: 1)
+                    .stroke(SBColor.keycapBorder, lineWidth: 1)
             )
     }
 }

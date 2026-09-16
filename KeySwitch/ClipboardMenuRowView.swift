@@ -35,6 +35,7 @@ struct ClipboardMenuRowView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .frame(width: 280, height: 28)
+        .background(Color.black.opacity(0.85))
         .background(isHovering ? SBColor.cardHover : Color.clear)
         .contentShape(Rectangle())
         .onHover { hovering in
