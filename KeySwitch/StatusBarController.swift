@@ -64,11 +64,6 @@ class StatusBarController {
         let menu = NSMenu()
         menu.minimumWidth = 280
         menu.autoenablesItems = false
-        // Force a dark/HUD appearance regardless of system menu-bar theme -
-        // without this the vibrant material NSMenu draws by default can
-        // pick up light-mode tinting, which is what washed out contrast on
-        // the white row text and made the keycap badges/borders unreadable.
-        menu.appearance = NSAppearance(named: .darkAqua)
 
         let recent = clipboardManager.visibleRecentItems()
         let pinned = clipboardManager.visiblePinnedItems()
