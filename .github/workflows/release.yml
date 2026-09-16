@@ -1,0 +1,151 @@
+# Builds SwitchBoard, packages it as a Sparkle-compatible .zip, signs it
+# with Sparkle's EdDSA key, regenerates appcast.xml, and publishes a GitHub
+# Release - triggered by pushing a version tag (e.g. `v1.0.1`).
+#
+# ONE-TIME SETUP before this workflow can do anything useful:
+#
+#   1. Generate a Sparkle EdDSA signing key pair (needs the Sparkle CLI
+#      tools - see the "Download Sparkle CLI tools" step below for how CI
+#      fetches them; you can run the same `generate_keys` binary locally):
+#        ./generate_keys
+#      This prints the PUBLIC key - paste it into
+#      KeySwitch/Info.plist's SUPublicEDKey (currently a placeholder; see
+#      the comment there). It also stores the PRIVATE key in your login
+#      Keychain.
+#
+#   2. Export the private key and add it as a repository secret named
+#      SPARKLE_PRIVATE_KEY (Settings -> Secrets and variables -> Actions):
+#        ./generate_keys -x /tmp/sparkle_private_key
+#      Paste the contents of /tmp/sparkle_private_key as the secret value,
+#      then delete that file. NEVER commit this key.
+#
+# KNOWN SIMPLIFICATION: this template regenerates appcast.xml from only the
+# release currently being published, so the appcast always has exactly one
+# <item> - anyone on an older version updates straight to latest, which is
+# fine for most small apps but skips Sparkle's delta-update/rollback
+# support. To publish a full version history instead, download previous
+# releases' .zip assets into `appcast_archives/` before the
+# `generate_appcast` step (see Sparkle's own release-notes generation docs).
+#
+# SIGNING: builds are ad-hoc signed (CODE_SIGN_IDENTITY="-"), matching
+# build_and_package.sh - there's no paid Apple Developer ID / notarization
+# configured for this project (see the long comment in that script for why
+# ad-hoc is actually the right call without one). If you later get a
+# Developer ID, add a notarization step (xcrun notarytool) here before
+# zipping, or Gatekeeper will still show the "unidentified developer"
+# prompt on updated builds same as it does today.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  SCHEME: KeySwitch
+  APP_NAME: SwitchBoard
+  CONFIGURATION: Release
+  # Keep this in sync with the Sparkle SPM dependency's resolved version
+  # (see KeySwitch.xcodeproj -> Sparkle package requirement) so the CLI
+  # tools match what's linked into the app.
+  SPARKLE_VERSION: "2.10.0"
+
+jobs:
+  release:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "marketing_version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project KeySwitch.xcodeproj \
+            -scheme "${SCHEME}"
+
+      - name: Build (ad-hoc signed, universal)
+        run: |
+          rm -rf build
+          xcodebuild \
+            -scheme "${SCHEME}" \
+            -configuration "${CONFIGURATION}" \
+            -destination "generic/platform=macOS" \
+            -derivedDataPath build \
+            clean build \
+            MARKETING_VERSION="${{ steps.version.outputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=""
+
+      - name: Locate built app and create zip
+        id: package
+        run: |
+          APP_PATH=$(find build -name "${APP_NAME}.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::Could not find ${APP_NAME}.app under build/"
+            exit 1
+          fi
+          ZIP_NAME="${APP_NAME}-${{ steps.version.outputs.marketing_version }}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_NAME"
+          echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Sparkle CLI tools
+        run: |
+          curl -fsSL -o sparkle-tools.tar.xz \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          mkdir -p sparkle-tools
+          tar -xf sparkle-tools.tar.xz -C sparkle-tools
+          echo "$(pwd)/sparkle-tools/bin" >> "$GITHUB_PATH"
+
+      - name: Generate signed appcast.xml
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            echo "::error::SPARKLE_PRIVATE_KEY secret is not set - see the setup comment at the top of this workflow file."
+            exit 1
+          fi
+          mkdir -p appcast_archives
+          cp "${{ steps.package.outputs.zip_name }}" appcast_archives/
+
+          generate_appcast \
+            --ed-key-file <(echo "$SPARKLE_PRIVATE_KEY") \
+            --download-url-prefix "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/" \
+            appcast_archives
+
+          cp appcast_archives/appcast.xml appcast.xml
+
+      - name: Commit appcast.xml to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git diff --staged --quiet || git commit -m "Update appcast.xml for ${{ steps.version.outputs.tag }}"
+          git push origin HEAD:main
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.package.outputs.zip_name }}

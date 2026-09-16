@@ -52,6 +52,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         statusBarController = StatusBarController()
 
+        // Starts Sparkle's own schedule: a check now, then periodically in
+        // the background per SUScheduledCheckInterval in Info.plist. Also
+        // reachable on demand via "Check for Updates…" in the status bar menu.
+        UpdaterManager.shared.start()
+
         // Check Accessibility permissions on startup
         checkAccessibilityPermissionsOnStartup()
 

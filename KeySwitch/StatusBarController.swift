@@ -64,6 +64,11 @@ class StatusBarController {
         let menu = NSMenu()
         menu.minimumWidth = 280
         menu.autoenablesItems = false
+        // Force a dark/HUD appearance regardless of system menu-bar theme -
+        // without this the vibrant material NSMenu draws by default can
+        // pick up light-mode tinting, which is what washed out contrast on
+        // the white row text and made the keycap badges/borders unreadable.
+        menu.appearance = NSAppearance(named: .darkAqua)
 
         let recent = clipboardManager.visibleRecentItems()
         let pinned = clipboardManager.visiblePinnedItems()
@@ -96,8 +101,17 @@ class StatusBarController {
             }
         }
 
-        // ====== Settings ======
+        // ====== Check for Updates / Settings ======
         menu.addItem(NSMenuItem.separator())
+
+        let checkForUpdatesItem = NSMenuItem(
+            title: "Check for Updates…",
+            action: #selector(checkForUpdates),
+            keyEquivalent: ""
+        )
+        checkForUpdatesItem.target = self
+        checkForUpdatesItem.isEnabled = UpdaterManager.shared.canCheckForUpdates
+        menu.addItem(checkForUpdatesItem)
 
         let settingsItem = NSMenuItem(
             title: "Settings…",
@@ -156,6 +170,10 @@ class StatusBarController {
 
     @objc private func openSettings() {
         SettingsWindowController.shared.showWindow()
+    }
+
+    @objc private func checkForUpdates() {
+        UpdaterManager.shared.checkForUpdates()
     }
 
     #if DEBUG

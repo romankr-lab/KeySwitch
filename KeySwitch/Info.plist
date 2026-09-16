@@ -28,6 +28,29 @@
 	<string>NSApplication</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>SwitchBoard needs Accessibility access to read and transform selected text between keyboard layouts.</string>
+
+	<!-- Sparkle 2 auto-update configuration. -->
+	<!-- Points at the appcast published to the repo's `main` branch by
+	     .github/workflows/release.yml (raw.githubusercontent.com serves it
+	     as plain XML). Derived from this checkout's `origin` remote
+	     (git@github.com:romankr-lab/KeySwitch.git) - update this if the
+	     release repo ever changes. -->
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/romankr-lab/KeySwitch/main/appcast.xml</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<!-- Background check interval in seconds; 86400 = once a day. Sparkle
+	     also always checks once on launch regardless of this interval. -->
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<!-- EdDSA public key Sparkle uses to verify downloaded update archives,
+	     generated via `generate_keys` on 2026-09-16 (private key lives only
+	     in this machine's login Keychain and in the SPARKLE_PRIVATE_KEY
+	     GitHub Actions secret used by .github/workflows/release.yml to sign
+	     each release with `sign_update`). Sparkle refuses to install any
+	     update that doesn't verify against this key. -->
+	<key>SUPublicEDKey</key>
+	<string>uhfvAYodaFkjME3rGhb78ivErF1HNYZFZ2P8oJo5uWE=</string>
 </dict>
 </plist>
 

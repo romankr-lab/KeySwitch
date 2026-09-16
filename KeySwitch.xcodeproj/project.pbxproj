@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3039E39A2ECE192D00E1DE30 /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 3039E3582ECE0E8300E1DE30 /* HotKey */; };
+		AB0000000000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000003 /* Sparkle */; };
 		3039E4B42ED243DB00E1DE30 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3039E4B32ED243DB00E1DE30 /* Carbon.framework */; };
 		3039E4B52ED243DC00E1DE30 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3039E4B62ED243DC00E1DE30 /* ApplicationServices.framework */; };
 /* End PBXBuildFile section */
@@ -48,6 +49,7 @@
 				3039E39A2ECE192D00E1DE30 /* HotKey in Frameworks */,
 				3039E4B42ED243DB00E1DE30 /* Carbon.framework in Frameworks */,
 				3039E4B52ED243DC00E1DE30 /* ApplicationServices.framework in Frameworks */,
+				AB0000000000000000000001 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +118,7 @@
 			name = KeySwitch;
 			packageProductDependencies = (
 				3039E3582ECE0E8300E1DE30 /* HotKey */,
+				AB0000000000000000000003 /* Sparkle */,
 			);
 			productName = KeySwitch;
 			productReference = 3039E3462ECE0E8300E1DE30 /* KeySwitch.app */;
@@ -147,6 +150,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3039E3572ECE0E8300E1DE30 /* XCRemoteSwiftPackageReference "HotKey" */,
+				AB0000000000000000000002 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3039E3472ECE0E8300E1DE30 /* Products */;
@@ -403,6 +407,14 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		AB0000000000000000000002 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -410,6 +422,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3039E3572ECE0E8300E1DE30 /* XCRemoteSwiftPackageReference "HotKey" */;
 			productName = HotKey;
+		};
+		AB0000000000000000000003 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB0000000000000000000002 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
