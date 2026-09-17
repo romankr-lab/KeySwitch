@@ -27,13 +27,48 @@
 # releases' .zip assets into `appcast_archives/` before the
 # `generate_appcast` step (see Sparkle's own release-notes generation docs).
 #
-# SIGNING: builds are ad-hoc signed (CODE_SIGN_IDENTITY="-"), matching
-# build_and_package.sh - there's no paid Apple Developer ID / notarization
-# configured for this project (see the long comment in that script for why
-# ad-hoc is actually the right call without one). If you later get a
-# Developer ID, add a notarization step (xcrun notarytool) here before
-# zipping, or Gatekeeper will still show the "unidentified developer"
-# prompt on updated builds same as it does today.
+# SIGNING: builds are signed with a self-signed "SwitchBoard Release
+# Signing" certificate (generated 2026-09-17), NOT ad-hoc
+# (CODE_SIGN_IDENTITY="-") and NOT a paid Apple Developer ID. This matters
+# specifically for Sparkle: Sparkle refuses to install an update unless the
+# new build's code signature was made with the *same certificate* as the
+# currently-running app's. Ad-hoc signing has no real certificate - Xcode
+# generates a fresh identity pinned to that exact build's content hash
+# every time - so two separately-built ad-hoc releases can NEVER satisfy
+# that check, and auto-update fails 100% of the time (confirmed via
+# Console: "Code signature of the new version doesn't match the old
+# version"). A self-signed cert reused across every release produces a
+# stable designated requirement (`certificate leaf = H"<cert hash>"`
+# instead of `cdhash H"<build hash>"`), which Sparkle accepts as "same
+# certificate" release after release - free, at the cost of Gatekeeper
+# still showing the "unidentified developer" prompt on first launch (same
+# as ad-hoc already did - see build_and_package.sh). If you later get a
+# paid Developer ID, switch CODE_SIGN_IDENTITY to that and add a
+# notarization step (xcrun notarytool) instead of this cert.
+#
+# One-time setup:
+#   1. Generate the cert once (already done for this repo; skip if the
+#      identity below already exists in your keychain):
+#        openssl req -x509 -newkey rsa:2048 -days 7300 -nodes \
+#          -subj "/CN=SwitchBoard Release Signing" \
+#          -keyout sb_signing.key -out sb_signing.crt \
+#          -addext "keyUsage=digitalSignature" \
+#          -addext "extendedKeyUsage=codeSigning"
+#   2. Bundle it for CI and set a throwaway export password:
+#        openssl pkcs12 -export -inkey sb_signing.key -in sb_signing.crt \
+#          -out sb_signing.p12 -name "SwitchBoard Release Signing" \
+#          -passout pass:<PASSWORD>
+#   3. Add two repository secrets (Settings -> Secrets and variables ->
+#      Actions): MACOS_SIGNING_CERT_P12 = `base64 -i sb_signing.p12`,
+#      and MACOS_SIGNING_CERT_PASSWORD = <PASSWORD>. Then delete the local
+#      .key/.crt/.p12 files - only the keychain copy is needed after this.
+#
+# NOTE ON THE FIRST CERT-SIGNED RELEASE: anyone already running an
+# ad-hoc-signed build (every release through v2.1.4) will hit this exact
+# same "signature doesn't match" wall trying to auto-update to the first
+# cert-signed release, since ad-hoc -> certificate is still a signing
+# identity change. That one jump needs a manual reinstall from the
+# release page; every release after that updates via Sparkle normally.
 
 name: Release
 
@@ -86,7 +121,30 @@ jobs:
             -project KeySwitch.xcodeproj \
             -scheme "${SCHEME}"
 
-      - name: Build (ad-hoc signed, universal)
+      - name: Import code-signing certificate
+        env:
+          CERT_P12_BASE64: ${{ secrets.MACOS_SIGNING_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_SIGNING_CERT_PASSWORD }}
+        run: |
+          if [ -z "$CERT_P12_BASE64" ] || [ -z "$CERT_PASSWORD" ]; then
+            echo "::error::MACOS_SIGNING_CERT_P12 / MACOS_SIGNING_CERT_PASSWORD secrets are not set - see the SIGNING setup comment at the top of this workflow file."
+            exit 1
+          fi
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          rm "$RUNNER_TEMP/cert.p12"
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+
+      - name: Build (signed with SwitchBoard Release Signing cert, universal)
         run: |
           rm -rf build
           xcodebuild \
@@ -97,7 +155,7 @@ jobs:
             clean build \
             MARKETING_VERSION="${{ steps.version.outputs.marketing_version }}" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_IDENTITY="SwitchBoard Release Signing" \
             CODE_SIGNING_REQUIRED=YES \
             CODE_SIGNING_ALLOWED=YES \
             CODE_SIGN_STYLE=Manual \

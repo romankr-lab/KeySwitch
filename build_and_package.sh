@@ -34,26 +34,29 @@ rm -f "${DMG_RW}"
 
 # Build the project
 #
-# IMPORTANT: this deliberately signs ad-hoc (CODE_SIGN_IDENTITY="-"), NOT
-# with whatever Xcode's "Automatically manage signing" + your free Apple ID
-# Personal Team would normally produce ("Sign to Run Locally" / an Apple
-# Development certificate).
+# IMPORTANT: this signs with the "SwitchBoard Release Signing" self-signed
+# certificate (see the SIGNING comment in .github/workflows/release.yml for
+# the full story) - NOT ad-hoc (CODE_SIGN_IDENTITY="-"), and NOT whatever
+# Xcode's "Automatically manage signing" + your free Apple ID Personal Team
+# would produce ("Sign to Run Locally" / an Apple Development certificate).
 #
-# That distinction matters a lot here: since macOS Sierra, an app signed
-# with a Development certificate (which is what a free Personal Team
-# issues) is flatly BLOCKED by Gatekeeper on any Mac other than the one that
-# built it - there's no right-click → Open override for that case, it just
-# won't launch. Plain ad-hoc signing, on the other hand, is treated as an
-# ordinary "unidentified developer" app, which people CAN open via
-# right-click → Open on any Mac. Since there's no paid Developer ID
-# certificate to notarize with anyway, ad-hoc is the one that actually
-# reaches other people's machines.
+# Gatekeeper treats this self-signed cert exactly like ad-hoc: an ordinary
+# "unidentified developer" app, openable via right-click → Open on any Mac
+# (unlike a free-Personal-Team Development certificate, which Gatekeeper
+# flatly BLOCKS on any Mac other than the one that built it, no override).
+# The difference from ad-hoc only matters for Sparkle auto-update: ad-hoc's
+# implicit signing identity is pinned to that exact build's content hash,
+# so no two separate ad-hoc builds can ever pass Sparkle's "same
+# certificate as the currently-running app" check - auto-update always
+# fails. This certificate is the same across every build (imported once
+# into this Mac's keychain), so a DMG built here and a release built by CI
+# both present the same signing identity to Sparkle.
 #
-# Trade-off to know about: ad-hoc identities aren't perfectly stable across
-# rebuilds, so people may occasionally need to re-grant Accessibility
-# permission after installing an update. Annoying, but not a blocker - and
-# it goes away entirely once you have a real Developer ID certificate.
-echo "📦 Building project (ad-hoc signed)..."
+# This certificate must already be in this machine's keychain (imported
+# once via `security import`, then trusted via `security add-trusted-cert
+# -p codeSign`) - if CODE_SIGN_IDENTITY below can't be found, this build
+# will fail rather than silently falling back to ad-hoc.
+echo "📦 Building project (signed with SwitchBoard Release Signing cert)..."
 #
 # -destination 'generic/platform=macOS' matters just as much: without it,
 # `xcodebuild build` only builds for the Mac actually running the build
@@ -67,7 +70,7 @@ xcodebuild \
     -destination "generic/platform=macOS" \
     -derivedDataPath "${BUILD_DIR}" \
     clean build \
-    CODE_SIGN_IDENTITY="-" \
+    CODE_SIGN_IDENTITY="SwitchBoard Release Signing" \
     CODE_SIGNING_REQUIRED=YES \
     CODE_SIGNING_ALLOWED=YES \
     CODE_SIGN_STYLE=Manual \
@@ -89,24 +92,30 @@ fi
 
 echo "✅ Found app at: ${APP_PATH}"
 
-# Verify the app is signed ad-hoc as expected (this is the correct/desired
-# outcome for a no-paid-account distributable build - see the note above).
+# Verify the app is signed with our self-signed cert as expected (this is
+# the correct/desired outcome for a no-paid-account distributable build
+# that still needs to be Sparkle-update-compatible - see the note above).
 echo ""
 echo "🔏 Verifying code signature..."
 SIGNATURE_INFO=$(codesign -dv "${APP_PATH}" 2>&1)
-if echo "$SIGNATURE_INFO" | grep -q "Signature=adhoc"; then
-    echo "✅ Signed ad-hoc, as expected for a no-paid-account distributable build."
+if echo "$SIGNATURE_INFO" | grep -q "Authority=SwitchBoard Release Signing"; then
+    echo "✅ Signed with SwitchBoard Release Signing, as expected."
+elif echo "$SIGNATURE_INFO" | grep -q "Signature=adhoc"; then
+    echo "⚠️  Signed ad-hoc, not with the SwitchBoard Release Signing cert."
+    echo "    This build can launch fine but will NOT be able to Sparkle-update"
+    echo "    to/from any cert-signed release. Check that the cert is imported"
+    echo "    and trusted in this machine's keychain (security find-identity -v"
+    echo "    -p codesigning should list \"SwitchBoard Release Signing\")."
 elif echo "$SIGNATURE_INFO" | grep -q "not signed"; then
-    echo "❌ App is NOT signed at all - something's wrong, this script forces ad-hoc signing."
+    echo "❌ App is NOT signed at all - something's wrong."
     echo "    Check the xcodebuild output above for signing errors."
 else
     TEAM_ID=$(echo "$SIGNATURE_INFO" | grep "^TeamIdentifier=" | cut -d= -f2)
-    echo "⚠️  Signed with a real Team Identifier (${TEAM_ID:-unknown}), not ad-hoc."
+    echo "⚠️  Signed with a real Team Identifier (${TEAM_ID:-unknown}), not our cert."
     echo "    If that's your free Personal Team's Development certificate, this"
     echo "    build will likely be BLOCKED by Gatekeeper on any Mac other than"
-    echo "    this one - the ad-hoc override in this script should have"
-    echo "    prevented that. If you now have a real paid Developer ID"
-    echo "    certificate, this is expected and fine."
+    echo "    this one. If you now have a real paid Developer ID certificate,"
+    echo "    this is expected and fine."
 fi
 echo ""
 
@@ -242,6 +251,7 @@ echo "     points at KeySwitch-Release.entitlements, not the Debug one"
 echo ""
 echo "   (Signing & Capabilities' 'Automatically manage signing' / Personal"
 echo "   Team setting is what Xcode uses when YOU run/debug the app locally -"
-echo "   this script overrides that with ad-hoc signing for the distributable"
-echo "   build on purpose, since a Personal Team's Development certificate"
-echo "   would be blocked entirely on any Mac but this one.)"
+echo "   this script overrides that with the SwitchBoard Release Signing"
+echo "   cert for the distributable build on purpose, since a Personal"
+echo "   Team's Development certificate would be blocked entirely on any"
+echo "   Mac but this one.)"
