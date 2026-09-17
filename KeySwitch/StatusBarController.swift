@@ -1,5 +1,4 @@
 import Cocoa
-import SwiftUI
 
 class StatusBarController {
 
@@ -30,12 +29,14 @@ class StatusBarController {
             NSLog("❌ CRITICAL: Failed to create status bar button!")
         }
 
-        // Menu for clicking on the icon in the menu bar. A plain NSMenu -
-        // not a custom floating panel - since NSMenu's own show/position/
-        // dismiss machinery is what actually renders reliably on this OS;
-        // see ClipboardMenuRowView.swift for why the panel approach was
-        // dropped. Individual clipboard rows still get the SwiftUI/keycap
-        // styling via NSMenuItem.view.
+        // Menu for clicking on the icon in the menu bar. A plain NSMenu with
+        // plain-title NSMenuItems - not a custom floating panel (NSMenu's
+        // own show/position/dismiss machinery is what actually renders
+        // reliably on this OS) and not a custom-colored SwiftUI row either
+        // (that fought the system's own light/dark vibrancy and kept coming
+        // out illegible). Letting every row be a stock NSMenuItem means its
+        // text, hover highlight and contrast are entirely the system's
+        // problem to get right, not ours.
         statusItem.menu = makeMenu()
 
         // Rebuild the menu whenever clipboard history changes, so it's
@@ -79,7 +80,7 @@ class StatusBarController {
             menu.addItem(emptyItem)
         } else {
             for (index, entry) in recent.enumerated() {
-                menu.addItem(makeRowItem(for: entry, index: index, isPinned: false, in: menu))
+                menu.addItem(makeRowItem(for: entry, index: index))
             }
         }
 
@@ -92,7 +93,7 @@ class StatusBarController {
             menu.addItem(pinnedHeader)
 
             for entry in pinned {
-                menu.addItem(makeRowItem(for: entry, index: nil, isPinned: true, in: menu))
+                menu.addItem(makeRowItem(for: entry, index: nil))
             }
         }
 
@@ -137,30 +138,76 @@ class StatusBarController {
         return menu
     }
 
-    /// Builds an NSMenuItem hosting a SwiftUI ClipboardMenuRowView for one
-    /// clipboard entry. `menu` is captured weakly so the row's own tap
-    /// handler can close the menu on select, the same way the plain-title
-    /// version used to via `sender.menu?.cancelTracking()`.
-    private func makeRowItem(for entry: ClipboardEntry, index: Int?, isPinned: Bool, in menu: NSMenu) -> NSMenuItem {
-        let item = NSMenuItem()
-        item.isEnabled = true
+    /// Builds a plain, system-styled NSMenuItem for one clipboard entry -
+    /// title text (plus a thumbnail image for image entries), rendered
+    /// entirely by NSMenu itself so it always matches the system's own
+    /// light/dark/vibrancy rules. `index` (recent items only, 0-based) shows
+    /// as a "N. " ordinal prefix; pinned items get a "★ " prefix instead.
+    private func makeRowItem(for entry: ClipboardEntry, index: Int?) -> NSMenuItem {
+        let isPinned = clipboardManager.isPinned(entry)
+        let prefix = isPinned ? "★ " : index.map { "\($0 + 1). " } ?? ""
 
-        item.view = ClipboardMenuRow.makeHostingView(
-            entry: entry,
-            index: index,
-            isPinned: isPinned,
-            onSelect: { [weak self, weak menu] in
-                menu?.cancelTracking()
-                self?.copyEntryToClipboard(entry)
-            },
-            onTogglePin: { [weak self] in
-                self?.clipboardManager.togglePin(for: entry)
-                // reloadMenu() (via the .clipboardDidUpdate notification
-                // togglePin posts) rebuilds statusItem.menu in place - the
-                // same pattern the original menu-based implementation used.
+        var title: String
+        var thumbnail: NSImage?
+
+        switch entry.content {
+        case .text(let text):
+            title = Self.singleLine(text)
+        case .image(let data):
+            if let image = NSImage(data: data) {
+                thumbnail = Self.thumbnail(for: image)
+                title = "Image (\(Int(image.size.width))×\(Int(image.size.height)))"
+            } else {
+                title = "Image"
             }
+        }
+
+        let item = NSMenuItem(
+            title: prefix + title,
+            action: #selector(didSelectClipboardItem(_:)),
+            keyEquivalent: ""
         )
+        item.target = self
+        item.representedObject = entry
+        item.image = thumbnail
         return item
+    }
+
+    /// Click on a clipboard row: plain click pastes it, ⌥-click toggles pin.
+    @objc private func didSelectClipboardItem(_ sender: NSMenuItem) {
+        guard let entry = sender.representedObject as? ClipboardEntry else { return }
+
+        if NSEvent.modifierFlags.contains(.option) {
+            clipboardManager.togglePin(for: entry)
+            // reloadMenu() (via the .clipboardDidUpdate notification
+            // togglePin posts) rebuilds statusItem.menu in place.
+        } else {
+            sender.menu?.cancelTracking()
+            copyEntryToClipboard(entry)
+        }
+    }
+
+    private static func singleLine(_ text: String) -> String {
+        let collapsed = text.replacingOccurrences(of: "\n", with: " ")
+        guard collapsed.count > 60 else { return collapsed }
+        let end = collapsed.index(collapsed.startIndex, offsetBy: 60)
+        return String(collapsed[..<end]) + "…"
+    }
+
+    /// Scales a full-size clipboard image down to a small icon suitable for
+    /// an NSMenuItem's `.image` (menu bar icons render best around
+    /// 16-32pt; the original image size would look enormous and misaligned).
+    private static func thumbnail(for image: NSImage, maxDimension: CGFloat = 24) -> NSImage {
+        let size = image.size
+        guard size.width > 0, size.height > 0 else { return image }
+
+        let scale = min(maxDimension / size.width, maxDimension / size.height, 1)
+        let targetSize = NSSize(width: size.width * scale, height: size.height * scale)
+
+        return NSImage(size: targetSize, flipped: false) { rect in
+            image.draw(in: rect)
+            return true
+        }
     }
 
     @objc private func openSettings() {

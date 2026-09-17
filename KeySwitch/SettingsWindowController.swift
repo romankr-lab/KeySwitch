@@ -41,13 +41,14 @@ class SettingsWindowController: NSWindowController {
     }
 }
 
-class SettingsViewController: NSViewController {
+class SettingsViewController: NSViewController, NSTextFieldDelegate {
 
     // NOTE: this view is built entirely in code in loadView() — there is no
     // xib/storyboard connected to this class.
 
     private var historyLimitField: NSTextField!
     private var historyLimitStepper: NSStepper!
+    private var historyLimitSaveButton: NSButton!
     private var launchAtLoginCheckbox: NSButton!
     private var clipboardShortcutRecorder: ShortcutRecorderView!
     private var transformShortcutRecorder: ShortcutRecorderView!
@@ -86,8 +87,12 @@ class SettingsViewController: NSViewController {
         historyLimitField = NSTextField(frame: NSRect(x: 150, y: cursorTop, width: 60, height: 22))
         historyLimitField.stringValue = String(SettingsManager.shared.historyLimit)
         historyLimitField.alignment = .right
-        historyLimitField.target = self
-        historyLimitField.action = #selector(historyLimitChanged(_:))
+        // No target/action commit-on-Enter here on purpose - typing or
+        // stepping only stages a pending value (see historyLimitFieldChanged
+        // / historyLimitStepperChanged below); only the explicit Save button
+        // actually writes it out, so there's one unambiguous "did this take
+        // effect" signal instead of Enter-vs-click-away inconsistency.
+        historyLimitField.delegate = self
         view.addSubview(historyLimitField)
 
         historyLimitStepper = NSStepper(frame: NSRect(x: 215, y: cursorTop, width: 19, height: 22))
@@ -98,6 +103,16 @@ class SettingsViewController: NSViewController {
         historyLimitStepper.target = self
         historyLimitStepper.action = #selector(historyLimitStepperChanged(_:))
         view.addSubview(historyLimitStepper)
+
+        historyLimitSaveButton = NSButton(
+            title: "Save",
+            target: self,
+            action: #selector(saveHistoryLimit)
+        )
+        historyLimitSaveButton.bezelStyle = .rounded
+        historyLimitSaveButton.frame = NSRect(x: 245, y: cursorTop - 1, width: 60, height: 24)
+        historyLimitSaveButton.isEnabled = false
+        view.addSubview(historyLimitSaveButton)
 
         cursorTop -= 22
         let infoLabel = NSTextField(labelWithString: "Maximum number of clipboard items to store (1-20)")
@@ -215,21 +230,40 @@ class SettingsViewController: NSViewController {
 
     // MARK: - History Limit
 
-    @objc private func historyLimitChanged(_ sender: NSTextField) {
-        if let value = Int(sender.stringValue), value >= 1 && value <= 20 {
-            SettingsManager.shared.historyLimit = value
-            historyLimitStepper.integerValue = value
-            ClipboardHistoryManager.shared.applyHistoryLimitChange()
-        } else {
-            sender.stringValue = String(SettingsManager.shared.historyLimit)
-        }
+    /// Live-updates the Save button as the user types, so it's enabled
+    /// exactly when there's a valid, unsaved value pending.
+    func controlTextDidChange(_ notification: Notification) {
+        guard let field = notification.object as? NSTextField, field === historyLimitField else { return }
+        updateHistoryLimitSaveButton()
     }
 
     @objc private func historyLimitStepperChanged(_ sender: NSStepper) {
-        let value = sender.integerValue
+        // The stepper only stages the value into the field - it does NOT
+        // save it, so both controls funnel through the same explicit Save
+        // step and can't disagree about whether a change has taken effect.
+        historyLimitField.stringValue = String(sender.integerValue)
+        updateHistoryLimitSaveButton()
+    }
+
+    private func pendingHistoryLimit() -> Int? {
+        guard let value = Int(historyLimitField.stringValue), value >= 1, value <= 20 else { return nil }
+        return value
+    }
+
+    private func updateHistoryLimitSaveButton() {
+        guard let pending = pendingHistoryLimit() else {
+            historyLimitSaveButton.isEnabled = false
+            return
+        }
+        historyLimitSaveButton.isEnabled = pending != SettingsManager.shared.historyLimit
+    }
+
+    @objc private func saveHistoryLimit() {
+        guard let value = pendingHistoryLimit() else { return }
         SettingsManager.shared.historyLimit = value
-        historyLimitField.stringValue = String(value)
+        historyLimitStepper.integerValue = value
         ClipboardHistoryManager.shared.applyHistoryLimitChange()
+        historyLimitSaveButton.isEnabled = false
     }
 
     // MARK: - Shortcuts
